@@ -45,7 +45,7 @@ public:
 
    enum {
       LogMinWindowSize = 3,
-      LogMaxWindowSize = 15,
+      LogMaxWindowSize = 19,
 
       NumWindowSizes = LogMaxWindowSize - LogMinWindowSize + 1,
    };

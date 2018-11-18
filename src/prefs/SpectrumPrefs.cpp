@@ -95,7 +95,11 @@ void SpectrumPrefs::Populate(size_t windowSize)
    mSizeChoices.Add(wxT("4096"));
    mSizeChoices.Add(wxT("8192"));
    mSizeChoices.Add(wxT("16384"));
-   mSizeChoices.Add(_("32768 - most narrowband"));
+   mSizeChoices.Add(wxT("32768"));
+   mSizeChoices.Add(wxT("65536"));
+   mSizeChoices.Add(wxT("131072"));
+   mSizeChoices.Add(wxT("262144"));
+   mSizeChoices.Add(_("524288 - most narrowband"));
    wxASSERT(mSizeChoices.size() == SpectrogramSettings::NumWindowSizes);
 
    PopulatePaddingChoices(windowSize);

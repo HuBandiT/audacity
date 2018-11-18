@@ -55,7 +55,7 @@
 #include "Experimental.h"
 
 static ArraysOf<int> gFFTBitTable;
-static const size_t MaxFastBits = 16;
+static const size_t MaxFastBits = 20;
 
 /* Declare Static functions */
 static void InitFFT();
