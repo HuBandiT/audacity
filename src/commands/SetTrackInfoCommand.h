@@ -123,7 +123,7 @@ public:
 
    bool bUseSpecPrefs;
    bool bSpectralSelect;
-   bool bGrayScale;
+   int mGradientColorScheme;
 
 // For tracking optional parameters.
    bool bHasColour;
@@ -136,7 +136,7 @@ public:
 
    bool bHasUseSpecPrefs;
    bool bHasSpectralSelect;
-   bool bHasGrayScale;
+   bool bHasGradientColorScheme;
 };
 
 class SetTrackCommand : public SetTrackBase

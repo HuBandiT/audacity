@@ -67,6 +67,7 @@ public:
 
    static const wxArrayString &GetScaleNames();
    static const wxArrayString &GetAlgorithmNames();
+   static const wxArrayString &GetColorSchemeNames();
 
    static SpectrogramSettings &defaults();
    SpectrogramSettings();
@@ -124,7 +125,7 @@ public:
    size_t GetFFTLength() const; // window size (times zero padding, if STFT)
    size_t NBins() const;
 
-   bool isGrayscale;
+   int gradientColorScheme;
 
    ScaleType scaleType;
 

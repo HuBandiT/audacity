@@ -618,8 +618,19 @@ void AColor::DarkMIDIChannel(wxDC * dc, int channel /* 1 - 16 */ )
 }
 
 
+unsigned char AColor::gradient_pre[ColorGradientTotal][GradientColorSchemeTotal][gradientSteps][3];
 
-unsigned char AColor::gradient_pre[ColorGradientTotal][2][gradientSteps][3];
+float AColor::SrgbToLin(float sRGB_value) {
+	const float a = 0.055;
+	float linear_value = (sRGB_value <= 0.04045) ? (sRGB_value / 12.92) : (pow((sRGB_value+a)/(1+a),2.4));
+	return linear_value;
+}
+
+float AColor::LinToSrgb(float linear_value) {
+	const float a = 0.055;
+	float sRGB_value = (linear_value <= 0.0031308) ? (12.92 * linear_value) : ((1 + a) * pow(linear_value, 1 / 2.4) - a);
+	return sRGB_value;
+}
 
 void AColor::PreComputeGradient() {
    {
@@ -627,39 +638,90 @@ void AColor::PreComputeGradient() {
          gradient_inited = 1;
 
          for (int selected = 0; selected < ColorGradientTotal; selected++)
-            for (int grayscale = 0; grayscale <= 1; grayscale++) {
+            for (int gradient_color_scheme = 0; gradient_color_scheme < GradientColorSchemeTotal; gradient_color_scheme++) {
                float r, g, b;
 
                int i;
                for (i=0; i<gradientSteps; i++) {
-                  float value = float(i)/gradientSteps;
+                  float value = float(i)/(gradientSteps - 1);
 
-                  if (grayscale) {
-                     r = g = b = 0.84 - 0.84 * value;
-                  } else {
-                     const int gsteps = 4;
-                     float gradient[gsteps + 1][3];
-                     theTheme.Colour( clrSpectro1 ) = theTheme.Colour( clrUnselected );
-                     theTheme.Colour( clrSpectro1Sel ) = theTheme.Colour( clrSelected );
-                     int clrFirst = (selected == ColorGradientUnselected ) ? clrSpectro1 : clrSpectro1Sel;
-                     for(int j=0;j<(gsteps+1);j++){
-                        wxColour c = theTheme.Colour( clrFirst+j );
-                        gradient[ j] [0] = c.Red()/255.0;
-                        gradient[ j] [1] = c.Green()/255.0;
-                        gradient[ j] [2] = c.Blue()/255.0;
-                     }
+				  switch (gradient_color_scheme) {
+				  case GradientColorSchemeOldGrayscale: // grayscale
+				     r = g = b = 0.84 - 0.84 * value;
+
+					 // pivoting into linear light for visually correct dimming calculations below
+					 r = SrgbToLin(r);
+					 g = SrgbToLin(g);
+					 b = SrgbToLin(b);
+
+					 break;
+				  case GradientColorSchemeThemeColors: // original color scheme
+					  {
+						  const int gsteps = 4;
+						  float gradient[gsteps + 1][3];
+						  theTheme.Colour(clrSpectro1) = theTheme.Colour(clrUnselected);
+						  theTheme.Colour(clrSpectro1Sel) = theTheme.Colour(clrSelected);
+						  int clrFirst = (selected == ColorGradientUnselected) ? clrSpectro1 : clrSpectro1Sel;
+						  for (int j = 0; j < (gsteps + 1); j++) {
+							  wxColour c = theTheme.Colour(clrFirst + j);
+							  gradient[j][0] = c.Red() / 255.0;
+							  gradient[j][1] = c.Green() / 255.0;
+							  gradient[j][2] = c.Blue() / 255.0;
+						  }
 
 
-                     int left = (int)(value * gsteps);
-                     int right = (left == gsteps ? gsteps : left + 1);
+						  int left = (int)(value * gsteps);
+						  int right = (left == gsteps ? gsteps : left + 1);
 
-                     float rweight = (value * gsteps) - left;
-                     float lweight = 1.0 - rweight;
+						  float rweight = (value * gsteps) - left;
+						  float lweight = 1.0 - rweight;
 
-                     r = (gradient[left][0] * lweight) + (gradient[right][0] * rweight);
-                     g = (gradient[left][1] * lweight) + (gradient[right][1] * rweight);
-                     b = (gradient[left][2] * lweight) + (gradient[right][2] * rweight);
-                  }
+						  r = (gradient[left][0] * lweight) + (gradient[right][0] * rweight);
+						  g = (gradient[left][1] * lweight) + (gradient[right][1] * rweight);
+						  b = (gradient[left][2] * lweight) + (gradient[right][2] * rweight);
+
+						  // pivoting into linear light for visually correct dimming calculations below
+						  r = SrgbToLin(r);
+						  g = SrgbToLin(g);
+						  b = SrgbToLin(b);
+					  }
+					  break;
+				  case GradientColorSchemeGrayscaleLinear: // grayscale linear intensity
+					  r = g = b = value;
+
+					  break;
+				  case GradientColorSchemeGrayscalePerceptual: // grayscale perceptual
+					  r = g = b = SrgbToLin(value);
+
+					  break;
+				  case GradientColorSchemeFauxBlackbody: // faux blackbody 1
+					  const float r_weight = 0.2126;
+					  const float g_weight = 0.7152;
+					  const float b_weight = 0.0722;
+					  
+					  if (value < r_weight) {
+						  r = value / r_weight;
+						  g = 0;
+						  b = 0;
+					  }
+					  else if (value < (r_weight + g_weight)) {
+						  r = 1;
+						  g = (value - r_weight) / g_weight;
+						  b = 0;
+					  }
+					  else if (value < 1.0) {
+						  r = 1;
+						  g = 1;
+						  b = (value - (r_weight + g_weight)) / b_weight;
+					  }
+					  else
+					  {
+						  r = 0;
+						  g = 0;
+						  b = 1;
+					  }
+				  }
+				  
 
                   switch (selected) {
                   case ColorGradientUnselected:
@@ -667,7 +729,7 @@ void AColor::PreComputeGradient() {
                      break;
 
                   case ColorGradientTimeAndFrequencySelected:
-                     if( !grayscale )
+                     if( 1 == gradient_color_scheme )
                      {
                         float temp;
                         temp = r;
@@ -676,8 +738,8 @@ void AColor::PreComputeGradient() {
                         b = temp;
                         break;
                      }
-                     // else fall through to SAME grayscale colour as normal selection.
-                     // The white lines show it up clearly enough.
+                     // else don't change color.
+                     // The selection border lines show it up clearly enough.
 
                   case ColorGradientTimeSelected:
                      // partly dimmed
@@ -687,18 +749,17 @@ void AColor::PreComputeGradient() {
                      break;
 
 
-                  // For now edge colour is just black (or white if grey-scale)
-                  // Later we might invert or something else funky.
+                  // For now edge colour is mapping 0.0 .. 1.0 to 0.75 .. 1.0
                   case ColorGradientEdge:
                      // fully dimmed
-                     r = 1.0f * grayscale;
-                     g = 1.0f * grayscale;
-                     b = 1.0f * grayscale;
+                     r = 0.75 + 0.25 * r;
+                     g = 0.75 + 0.25 * g;
+                     b = 0.75 + 0.25 * b;
                      break;
                   }
-                  gradient_pre[selected][grayscale][i][0] = (unsigned char) (255 * r);
-                  gradient_pre[selected][grayscale][i][1] = (unsigned char) (255 * g);
-                  gradient_pre[selected][grayscale][i][2] = (unsigned char) (255 * b);
+                  gradient_pre[selected][gradient_color_scheme][i][0] = (unsigned char) (255 * LinToSrgb(r));
+                  gradient_pre[selected][gradient_color_scheme][i][1] = (unsigned char) (255 * LinToSrgb(g));
+                  gradient_pre[selected][gradient_color_scheme][i][2] = (unsigned char) (255 * LinToSrgb(b));
                }
             }
       }

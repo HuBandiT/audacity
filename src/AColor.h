@@ -59,6 +59,16 @@ class AColor {
       ColorGradientTotal // keep me last
    };
 
+	enum GradientColorScheme {
+	   GradientColorSchemeOldGrayscale = 0,
+	   GradientColorSchemeThemeColors,
+	   GradientColorSchemeGrayscaleLinear,
+	   GradientColorSchemeGrayscalePerceptual,
+	   GradientColorSchemeFauxBlackbody,
+
+	   GradientColorSchemeTotal // keep me last
+	};
+
    static void Init();
    static void ReInit();
 
@@ -97,6 +107,8 @@ class AColor {
    static void TrackFocusPen(wxDC * dc, int level /* 0 - 2 */);
    static void SnapGuidePen(wxDC * dc);
 
+   static float SrgbToLin(float sRGB_value);
+   static float LinToSrgb(float linear_value);
    static void PreComputeGradient();
 
    // Member variables
@@ -140,8 +152,8 @@ class AColor {
    static wxBrush tooltipBrush;
 
    static bool gradient_inited;
-   static const int gradientSteps = 512;
-   static unsigned char gradient_pre[ColorGradientTotal][2][gradientSteps][3];
+   static const int gradientSteps = 3 * 3296; // lowest non-zero sRGB value is 1/3295.6 linear light intensity; faux black body does this scale 3 times
+   static unsigned char gradient_pre[ColorGradientTotal][GradientColorSchemeTotal][gradientSteps][3];
 
    // For experiments in mouse-over highlighting only
    static wxPen uglyPen;
@@ -156,16 +168,16 @@ class AColor {
 
 inline void GetColorGradient(float value,
                              AColor::ColorGradientChoice selected,
-                             bool grayscale,
+                             int gradient_color_scheme,
                              unsigned char * __restrict red,
                              unsigned char * __restrict green,
                              unsigned char * __restrict blue) {
 
    int idx = value * (AColor::gradientSteps - 1);
 
-   *red = AColor::gradient_pre[selected][grayscale][idx][0];
-   *green = AColor::gradient_pre[selected][grayscale][idx][1];
-   *blue = AColor::gradient_pre[selected][grayscale][idx][2];
+   *red = AColor::gradient_pre[selected][gradient_color_scheme][idx][0];
+   *green = AColor::gradient_pre[selected][gradient_color_scheme][idx][1];
+   *blue = AColor::gradient_pre[selected][gradient_color_scheme][idx][2];
 }
 
 #endif

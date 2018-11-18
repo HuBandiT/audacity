@@ -2158,7 +2158,7 @@ void TrackArt::DrawClipSpectrum(TrackPanelDrawingContext &context,
    freqHi = selectedRegion.f1();
 #endif
 
-   const bool &isGrayscale = settings.isGrayscale;
+   const int &gradientColorScheme = settings.gradientColorScheme;
    const int &range = settings.range;
    const int &gain = settings.gain;
 
@@ -2515,7 +2515,7 @@ void TrackArt::DrawClipSpectrum(TrackPanelDrawingContext &context,
             : clip->mSpecPxCache->values[correctedX * hiddenMid.height + yy];
 
          unsigned char rv, gv, bv;
-         GetColorGradient(value, selected, isGrayscale, &rv, &gv, &bv);
+         GetColorGradient(value, selected, gradientColorScheme, &rv, &gv, &bv);
 
 #ifdef EXPERIMENTAL_FFT_Y_GRID
          if (fftYGrid && yGrid[yy]) {

@@ -266,10 +266,31 @@ enum kScaleTypes
 
 static const ComponentInterfaceSymbol kScaleTypeStrings[nScaleTypes] =
 {
-   // These are acceptable dual purpose internal/visible names
-   { XO("Linear") },
-   /* i18n-hint: abbreviates decibels */
-   { XO("dB") },
+	// These are acceptable dual purpose internal/visible names
+	{ XO("Linear") },
+	/* i18n-hint: abbreviates decibels */
+	{ XO("dB") },
+};
+
+enum kColorSchemes
+{
+	kOldGrayscale,
+	kThemeColors,
+	kGrayscaleLinear,
+	kGrayscalePerceptual,
+	kFauxBlackbody,
+	nColorSchemes
+};
+
+static const ComponentInterfaceSymbol kColorSchemeStrings[nColorSchemes] =
+{
+	{ XO("Grayscale") },
+	/* i18n-hint: User's UI theme colors */
+	{ XO("Use theme colors") },
+	{ XO("Grayscale linear") },
+	{ XO("Grayscale perceptual") },
+	/* i18n-hint: faux: pretend, false, not original */
+	{ XO("Faux Blackbody 1") },
 };
 
 enum kZoomTypes
@@ -297,9 +318,9 @@ bool SetTrackVisualsCommand::DefineParams( ShuttleParams & S ){
    S.OptionalN( bHasVZoomTop       ).Define(     mVZoomTop,       wxT("VZoomHigh"),  1.0,  -2.0,  2.0 );
    S.OptionalN( bHasVZoomBottom    ).Define(     mVZoomBottom,    wxT("VZoomLow"),   -1.0, -2.0,  2.0 );
 
-   S.OptionalN( bHasUseSpecPrefs   ).Define(     bUseSpecPrefs,   wxT("SpecPrefs"),  false );
-   S.OptionalN( bHasSpectralSelect ).Define(     bSpectralSelect, wxT("SpectralSel"),true );
-   S.OptionalN( bHasGrayScale      ).Define(     bGrayScale,      wxT("GrayScale"),  false );
+   S.OptionalN( bHasUseSpecPrefs        ).Define(     bUseSpecPrefs,             wxT("SpecPrefs"),  false );
+   S.OptionalN( bHasSpectralSelect      ).Define(     bSpectralSelect,           wxT("SpectralSel"), true );
+   S.OptionalN( bHasGradientColorScheme ).DefineEnum( mGradientColorScheme,      wxT("ColorScheme"), kOldGrayscale, kColorSchemeStrings, nColorSchemes);
 
    return true;
 };
@@ -310,6 +331,7 @@ void SetTrackVisualsCommand::PopulateOrExchange(ShuttleGui & S)
    auto displays = LocalizedStrings( kDisplayTypeStrings, nDisplayTypes );
    auto scales = LocalizedStrings( kScaleTypeStrings, nScaleTypes );
    auto vzooms = LocalizedStrings( kZoomTypeStrings, nZoomTypes );
+   auto colorschemes = LocalizedStrings(kColorSchemeStrings, nColorSchemes);
 
    SetTrackBase::PopulateOrExchange( S );
    S.StartMultiColumn(3, wxEXPAND);
@@ -327,9 +349,9 @@ void SetTrackVisualsCommand::PopulateOrExchange(ShuttleGui & S)
    S.StartMultiColumn(2, wxEXPAND);
    {
       S.SetStretchyCol( 1 );
-      S.Optional( bHasUseSpecPrefs   ).TieCheckBox( _("Use Spectral Prefs"), bUseSpecPrefs );
-      S.Optional( bHasSpectralSelect ).TieCheckBox( _("Spectral Select"),    bSpectralSelect);
-      S.Optional( bHasGrayScale      ).TieCheckBox( _("Gray Scale"),         bGrayScale );
+      S.Optional( bHasUseSpecPrefs        ).TieCheckBox( _("Use Spectral Prefs"), bUseSpecPrefs );
+      S.Optional( bHasSpectralSelect      ).TieCheckBox( _("Spectral Select"),    bSpectralSelect);
+	  S.Optional( bHasGradientColorScheme ).TieChoice(   _("Color Scheme"),       mGradientColorScheme, &colorschemes);
    }
    S.EndMultiColumn();
 }
@@ -404,8 +426,8 @@ bool SetTrackVisualsCommand::ApplyInner(const CommandContext & context, Track * 
    if( wt && bHasSpectralSelect ){
       wt->GetSpectrogramSettings().spectralSelection = bSpectralSelect;
    }
-   if( wt && bHasGrayScale ){
-      wt->GetSpectrogramSettings().isGrayscale = bGrayScale;
+   if( wt && bHasGradientColorScheme ){
+      wt->GetSpectrogramSettings().gradientColorScheme = mGradientColorScheme;
    }
 
    return true;

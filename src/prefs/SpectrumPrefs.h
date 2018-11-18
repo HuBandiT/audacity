@@ -86,6 +86,7 @@ class SpectrumPrefs final : public PrefsPanel
 
    wxChoice *mAlgorithmChoice;
    wxArrayString mAlgorithmChoices;
+   wxArrayString mColorSchemeChoices;
 
 
 #ifdef EXPERIMENTAL_FIND_NOTES

@@ -75,7 +75,7 @@ enum {
    ID_GAIN,
    ID_RANGE,
    ID_FREQUENCY_GAIN,
-   ID_GRAYSCALE,
+   ID_COLOR_SCHEME,
    ID_SPECTRAL_SELECTION,
 #endif
    ID_DEFAULTS,
@@ -111,6 +111,8 @@ void SpectrumPrefs::Populate(size_t windowSize)
    mScaleChoices = SpectrogramSettings::GetScaleNames();
 
    mAlgorithmChoices = SpectrogramSettings::GetAlgorithmNames();
+
+   mColorSchemeChoices = SpectrogramSettings::GetColorSchemeNames();
 
    //------------------------- Main section --------------------
    // Now construct the GUI itself.
@@ -220,12 +222,14 @@ void SpectrumPrefs::PopulateOrExchange(ShuttleGui & S)
                S.Id(ID_FREQUENCY_GAIN).TieNumericTextBox(_("High &boost (dB/dec):"),
                mTempSettings.frequencyGain,
                8);
-         }
+
+			S.Id(ID_COLOR_SCHEME).TieChoice(_("&Color scheme:"),
+				mTempSettings.gradientColorScheme,
+				&mColorSchemeChoices);
+		 }
          S.EndMultiColumn();
 
-         S.Id(ID_GRAYSCALE).TieCheckBox(_("Gra&yscale"),
-            mTempSettings.isGrayscale);
-      }
+	  }
       S.EndStatic();
    }
    S.EndMultiColumn();
@@ -559,7 +563,7 @@ BEGIN_EVENT_TABLE(SpectrumPrefs, PrefsPanel)
    EVT_TEXT(ID_GAIN, SpectrumPrefs::OnControl)
    EVT_TEXT(ID_RANGE, SpectrumPrefs::OnControl)
    EVT_TEXT(ID_FREQUENCY_GAIN, SpectrumPrefs::OnControl)
-   EVT_CHECKBOX(ID_GRAYSCALE, SpectrumPrefs::OnControl)
+   EVT_CHOICE(ID_COLOR_SCHEME, SpectrumPrefs::OnControl)
    EVT_CHECKBOX(ID_SPECTRAL_SELECTION, SpectrumPrefs::OnControl)
 
 END_EVENT_TABLE()

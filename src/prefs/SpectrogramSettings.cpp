@@ -73,7 +73,7 @@ SpectrogramSettings::SpectrogramSettings(const SpectrogramSettings &other)
 #ifdef EXPERIMENTAL_ZERO_PADDED_SPECTROGRAMS
    , zeroPaddingFactor(other.zeroPaddingFactor)
 #endif
-   , isGrayscale(other.isGrayscale)
+   , gradientColorScheme(other.gradientColorScheme)
    , scaleType(other.scaleType)
 #ifndef SPECTRAL_SELECTION_GLOBAL_SWITCH
    , spectralSelection(other.spectralSelection)
@@ -110,7 +110,7 @@ SpectrogramSettings &SpectrogramSettings::operator= (const SpectrogramSettings &
 #ifdef EXPERIMENTAL_ZERO_PADDED_SPECTROGRAMS
       zeroPaddingFactor = other.zeroPaddingFactor;
 #endif
-      isGrayscale = other.isGrayscale;
+      gradientColorScheme = other.gradientColorScheme;
       scaleType = other.scaleType;
 #ifndef SPECTRAL_SELECTION_GLOBAL_SWITCH
       spectralSelection = other.spectralSelection;
@@ -181,6 +181,26 @@ const wxArrayString &SpectrogramSettings::GetAlgorithmNames()
 
    static AlgorithmNamesArray theArray;
    return theArray.Get();
+}
+
+//static
+const wxArrayString &SpectrogramSettings::GetColorSchemeNames()
+{
+	class ColorSchemeNamesArray final : public TranslatableStringArray
+	{
+		void Populate() override
+		{
+			// Keep in correspondence with enum SpectrogramSettings::ColorScheme:
+			mContents.Add(_("Grayscale (old)"));
+			mContents.Add(_("Theme colors"));
+			mContents.Add(_("Grayscale - linear"));
+			mContents.Add(_("Grayscale - perceptual"));
+			mContents.Add(_("Faux blackbody"));
+		}
+	};
+
+	static ColorSchemeNamesArray theArray;
+	return theArray.Get();
 }
 
 bool SpectrogramSettings::Validate(bool quiet)
@@ -267,7 +287,7 @@ void SpectrogramSettings::LoadPrefs()
 
    gPrefs->Read(wxT("/Spectrum/WindowType"), &windowType, eWinFuncHanning);
 
-   isGrayscale = (gPrefs->Read(wxT("/Spectrum/Grayscale"), 0L) != 0);
+   gPrefs->Read(wxT("/Spectrum/GradientColorScheme"), &gradientColorScheme, AColor::GradientColorSchemeThemeColors);
 
    scaleType = ScaleType(gPrefs->Read(wxT("/Spectrum/ScaleType"), 0L));
 
@@ -315,7 +335,7 @@ void SpectrogramSettings::SavePrefs()
 
    gPrefs->Write(wxT("/Spectrum/WindowType"), windowType);
 
-   gPrefs->Write(wxT("/Spectrum/Grayscale"), isGrayscale);
+   gPrefs->Write(wxT("/Spectrum/GradientColorScheme"), (int) gradientColorScheme);
 
    gPrefs->Write(wxT("/Spectrum/ScaleType"), (int) scaleType);
 
