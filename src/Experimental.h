@@ -64,7 +64,7 @@
 // Define this so that sync-lock tiles shine through spectrogram.
 // The spectrogram pastes a bitmap over the tiles.
 // This makes it use alpha blending, most transparent where least intense.
-#define EXPERIMENTAL_SPECTROGRAM_OVERLAY
+//#define EXPERIMENTAL_SPECTROGRAM_OVERLAY
 
 // Define this so that sync-lock tiles shine through note/MIDI track.
 // The note track then relies on the same code for drawing background as
