@@ -45,6 +45,8 @@ class TranslatableString;
     * 7: Gaussian(a=2.5)
     * 8: Gaussian(a=3.5)
     * 9: Gaussian(a=4.5)
+    * 10: Hann-Poisson (alpha=2.0)
+    * 11: Hann-Poisson (alpha=3.0)
 */
 
 #include <wx/defs.h>
@@ -117,6 +119,8 @@ enum eWindowFunctions
    eWinFuncGaussian25,
    eWinFuncGaussian35,
    eWinFuncGaussian45,
+   eWinFuncHannPoisson20,
+   eWinFuncHannPoisson30,
    eWinFuncCount
 };
 

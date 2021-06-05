@@ -37,6 +37,8 @@
     * 7: Gaussian(a=2.5)
     * 8: Gaussian(a=3.5)
     * 9: Gaussian(a=4.5)
+    * 10: Hann-Poisson (alpha=2.0)
+    * 11: Hann-Poisson (alpha=3.0)
 */
 
 
@@ -365,6 +367,12 @@ const TranslatableString WindowFuncName(int whichFunction)
    case eWinFuncGaussian45:
       /* i18n-hint a mathematical function named for C. F. Gauss */
       return XO("Gaussian(a=4.5)");
+   case eWinFuncHannPoisson20:
+       /* i18n-hint a mathematical function named for Julius von Hann and Siméon Denis Poisson */
+       return XO("Hann–Poisson (alpha=2.0)");
+   case eWinFuncHannPoisson30:
+       /* i18n-hint a mathematical function named for Julius von Hann and Siméon Denis Poisson */
+       return XO("Hann–Poisson (alpha=3.0)");
    }
 }
 
@@ -486,6 +494,28 @@ void NewWindowFunc(int whichFunction, size_t NumSamplesIn, bool extraSample, flo
          const float iOverN = ii / N;
          in[ii] *= exp(A * (0.25 + (iOverN * iOverN) - iOverN));
       }
+   }
+      break;
+   case eWinFuncHannPoisson20:
+   {
+       // Hann-Poisson (alpha=2.0)
+       static const double alpha = 2.0;
+       const double multiplier = 1.0 / NumSamples;
+       const double radian_multiplier = 2 * M_PI * multiplier;
+       static const double coeff0 = 0.5, coeff1 = -0.5;
+       for (int ii = 0; ii < NumSamples; ++ii)
+           in[ii] *= (coeff0 + coeff1 * cos(ii * radian_multiplier)) * exp(-alpha * abs(1 - 2 * ii * multiplier));
+   }
+      break;
+   case eWinFuncHannPoisson30:
+   {
+       // Hann-Poisson (alpha=3.0)
+       static const double alpha = 3.0;
+       const double multiplier = 1.0 / NumSamples;
+       const double radian_multiplier = 2 * M_PI * multiplier;
+       static const double coeff0 = 0.5, coeff1 = -0.5;
+       for (int ii = 0; ii < NumSamples; ++ii)
+           in[ii] *= (coeff0 + coeff1 * cos(ii * radian_multiplier)) * exp(-alpha * abs(1 - 2 * ii * multiplier));
    }
       break;
    }
@@ -695,6 +725,32 @@ void DerivativeOfWindowFunc(int whichFunction, size_t NumSamples, bool extraSamp
       }
    }
       break;
+   case eWinFuncHannPoisson20:
+   {
+       // Hann-Poisson (alpha=2.0)
+       if (extraSample)
+          in[NumSamples] = 0.0f;
+       static const double alpha = 2.0;
+       const double multiplier = 1.0 / NumSamples;
+       const double radian_multiplier = 2 * M_PI * multiplier;
+       for (int ii = 0; ii < NumSamples; ++ii)
+		   in[ii] *= M_PI * exp(-alpha * abs(1 - 2 * ii * multiplier)) * sin(ii * radian_multiplier) +
+		   2 * (1 - 2 * ii * multiplier) * exp(-alpha * abs(1 - 2 * ii * multiplier)) * (1 - cos(ii * radian_multiplier)) / abs(1 - 2 * ii * multiplier);
+   }
+   break;
+   case eWinFuncHannPoisson30:
+   {
+       // Hann-Poisson (alpha=3.0)
+       if (extraSample)
+          in[NumSamples] = 0.0f;
+       static const double alpha = 3.0;
+       const double multiplier = 1.0 / NumSamples;
+       const double radian_multiplier = 2 * M_PI * multiplier;
+       for (int ii = 0; ii < NumSamples; ++ii)
+           in[ii] *= M_PI * exp(-alpha * abs(1 - 2 * ii * multiplier)) * sin(ii * radian_multiplier) +
+           2 * (1 - 2 * ii * multiplier) * exp(-alpha * abs(1 - 2 * ii * multiplier)) * (1 - cos(ii * radian_multiplier)) / abs(1 - 2 * ii * multiplier);
+   }
+   break;
    default:
       wxFprintf(stderr, "FFT::DerivativeOfWindowFunc - Invalid window function: %d\n", whichFunction);
    }
